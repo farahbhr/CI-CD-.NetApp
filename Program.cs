@@ -1,10 +1,17 @@
-﻿// See https://aka.ms/new-console-template for more information
-Console.WriteLine("Hello there!");
-Console.WriteLine("Can we get to know each other?");
+﻿using System;
+using System.Diagnostics;
 
-Console.WriteLine("What is your name?");
-var name = Console.ReadLine();
-var currentDate = DateTime.Now;
-Console.WriteLine($"{Environment.NewLine}Hello, {name}, on {currentDate:d} at {currentDate:t}!");
-Console.Write($"{Environment.NewLine}Press any key to exit...");
-Console.ReadKey(true);
+class Program
+{
+    static void Main(string[] args)
+    {
+     //   Process process = new Process();
+       // process.StartInfo.RedirectStandardInput = true;
+       // process.StartInfo.UseShellExecute = false;
+        //process.Start();
+        //process.StandardInput.WriteLine("whatever the parameter is...");
+
+        Console.WriteLine("Hello there!");
+        Console.WriteLine("Can we get to know each other?");
+    }
+}

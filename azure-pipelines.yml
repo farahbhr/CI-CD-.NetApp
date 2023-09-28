@@ -1,13 +1,9 @@
-# .NET Desktop
-# Build and run tests for .NET Desktop or Windows classic desktop solutions.
-# Add steps that publish symbols, save build artifacts, and more:
-# https://docs.microsoft.com/azure/devops/pipelines/apps/windows/dot-net
 
 trigger:
 - task
 
 pool:
-  name: test-farah
+  name: ads_Windows
 
 stages:
 - stage: BuildApp
@@ -31,6 +27,14 @@ stages:
       inputs:
         restoreSolution: '$(solution)'
 
+    - task: SonarQubePrepare@5
+      displayName: 'Prepare SonarQube Connection'
+      inputs:
+        SonarQube: 'SonarQube'
+        scannerMode: 'MSBuild'
+        projectKey: 'TestFarah'
+        projectName: 'TestFarah'
+    
     - task: VSBuild@1
       displayName: 'Build Solution'
       inputs:
@@ -38,16 +42,14 @@ stages:
         platform: '$(buildPlatform)'
         configuration: '$(buildConfiguration)'
 
-    #- task: VSTest@2
-      #inputs:
-       # platform: '$(buildPlatform)'
-        #configuration: '$(buildConfiguration)'
+    - task: SonarQubeAnalyze@5
+      displayName: 'SonarQube Analyze'
 
     - task: CopyFiles@2
       displayName: 'Copy Files to $(Build.ArtifactStagingDirectory)'
       inputs:
         sourceFolder: '$(Build.SourcesDirectory)'
-        contents: '**/$(BuildConfiguration)/**/?(*.exe|*.dll|*.pdb)'
+        contents: '**/bin/Debug/**'
         targetFolder: '$(Build.ArtifactStagingDirectory)' 
 
     - task: PublishBuildArtifacts@1
@@ -55,3 +57,41 @@ stages:
       inputs:
         pathtoPublish: '$(Build.ArtifactStagingDirectory)'
         artifactName: 'DropHelloWorld'
+
+    - task: SonarQubePublish@5
+      displayName: 'Publish SonarQube Result task'
+      inputs:
+        pollingTimeoutSec: '300'
+        
+- stage: DeployApp
+  displayName: 'Deploy App'
+
+  jobs:
+  - job: DeployConsoleApp
+    displayName: 'Deploy Console App'
+
+    pool:
+      name: test-farah
+
+    steps:
+
+    - task: DownloadBuildArtifacts@0
+      inputs:
+        buildType: 'current'
+        downloadType: 'single'
+        artifactName: 'DropHelloWorld'
+        downloadPath: '$(System.ArtifactsDirectory)'
+
+    - task: CopyFiles@2
+      displayName: 'Copy Files to D:\ on the agent Host'
+      inputs:
+        SourceFolder: '$(System.ArtifactsDirectory)'
+        Contents: '**'
+        TargetFolder: 'D:\Hello'
+    
+    - task: CmdLine@2
+      displayName: 'Run Console App'
+      inputs:
+        script: 'HelloWorld.exe'
+        workingDirectory: 'D:\Hello\DropHelloWorld\bin\Debug\net6.0'
+        
